@@ -12,6 +12,10 @@ module Frange
       @pipe.source = val
     end
 
+    def selector &block
+      @pipe.selector = block
+    end
+
     def to_pipe
       @pipe
     end

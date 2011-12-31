@@ -5,7 +5,8 @@ describe Frange do
     context "given with source" do
       subject {
         Frange.piping do |pipe|
-          pipe.source ["a", "b", "c"].to_enum
+          pipe.source ["a", 1, "b", 2, "c"].to_enum
+          pipe.selector { |input| input.kind_of?(String) }
           pipe.filter { |input| input + "1" }
           pipe.filter { |input| input + "2" }
           pipe.filter { |input| input + "3" }

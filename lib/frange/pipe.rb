@@ -1,9 +1,10 @@
 module Frange
   class Pipe
-    attr_accessor :source
+    attr_accessor :source, :selector
     attr_reader :filters
 
     def initialize
+      @selector = ->(input){ true }
       @filters = []
     end
 
@@ -12,7 +13,9 @@ module Frange
     end
 
     def next
-      @filters.reduce(@source.next){ |s,f| f.call(s) }
+      call_once = false
+      call_once, matched = true, @source.next until @selector.call(@source.peek)
+      @filters.reduce(call_once ? matched : @source.next){ |s,f| f.call(s) }
     end
   end
 end
