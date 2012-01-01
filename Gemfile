@@ -3,6 +3,7 @@ source "http://rubygems.org"
 # Specify your gem's dependencies in frange.gemspec
 gemspec
 
+gem "rake"
 gem "rspec"
 
 gem "guard"
