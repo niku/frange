@@ -1,8 +1,9 @@
 require "frange/version"
-require "frange/pipe"
-require "frange/builder"
 
 module Frange
+  autoload :Pipe,    "frange/pipe"
+  autoload :Builder, "frange/builder"
+
   def self.piping &block
     builder = Builder.new
     builder.instance_eval &block if block_given?
