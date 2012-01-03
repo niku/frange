@@ -2,15 +2,16 @@ require "spec_helper"
 
 module Frange
   describe Pipe do
-    describe "Pipe#next" do
+    describe "#next" do
+      subject { Class.new{ include Pipe }.new }
       context "when default" do
         it{ expect{ subject.next }.to raise_exception } # TODO How to behave?
       end
       context "given source" do
         subject do
-          pipe = Pipe.new
-          pipe.source = %w(a b).to_enum
-          pipe
+          klass = Class.new{ include Pipe }
+          klass.source = %w(a b).to_enum
+          klass.new
         end
         context "when called twice" do
           it{
@@ -25,11 +26,11 @@ module Frange
       end
       context "given source and filter" do
         subject do
-          pipe = Pipe.new
-          pipe.source = %w(a b).to_enum
-          pipe.add_filter ->(input){ input + "1" }
-          pipe.add_filter ->(input){ input + "2" }
-          pipe
+          klass = Class.new{ include Pipe }
+          klass.source = %w(a b).to_enum
+          klass.add_filter ->(input){ input + "1" }
+          klass.add_filter ->(input){ input + "2" }
+          klass.new
         end
         context "when called twice" do
           it{

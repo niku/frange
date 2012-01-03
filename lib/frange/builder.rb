@@ -1,7 +1,7 @@
 module Frange
   class Builder
     def initialize
-      @pipe = Pipe.new
+      @pipe = Class.new{ include Pipe }
     end
 
     def filter &block
