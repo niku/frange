@@ -10,7 +10,7 @@ describe Frange do
           pipe.filter { |input| input + "1" }
           pipe.filter { |input| input + "2" }
           pipe.filter { |input| input + "3" }
-        }.new
+        }
       }
       it{ should be_kind_of Frange::Pipe }
       it{ subject.should have(3).filters }
