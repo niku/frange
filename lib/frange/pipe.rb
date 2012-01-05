@@ -3,15 +3,15 @@ module Frange
     attr_accessor :source
 
     def initialize
-      @source = self.class.source.clone || Enumerator.new
+      @source = self.class.source.clone
     end
 
     def selector
-      self.class.selector || ->(input){ true }
+      self.class.selector
     end
 
     def filters
-      self.class.filters || []
+      self.class.filters
     end
 
     def next
@@ -29,9 +29,19 @@ module Frange
       attr_accessor :selector, :source
       attr_reader :filters
 
+      def self.extended(mod)
+        mod.module_eval { module_initialize }
+      end
+
       def add_filter filter
-        @filters ||= []
         @filters << filter
+      end
+
+      private
+      def module_initialize
+        @selector = ->(input){ true }
+        @source = [].to_enum
+        @filters = []
       end
     end
   end
