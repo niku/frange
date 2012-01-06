@@ -1,9 +1,11 @@
 module Frange
   module Pipe
-    attr_accessor :source
+    def initialize source = nil
+      @source = source ?  source : self.class.source.clone
+    end
 
-    def initialize
-      @source = self.class.source.clone
+    def source
+      @source.clone
     end
 
     def selector
