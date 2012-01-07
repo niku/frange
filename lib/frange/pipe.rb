@@ -30,12 +30,12 @@ module Frange
       @source.peek
     end
 
-    # define class method's
+    # define draft
     def self.included(mod)
-      mod.extend ClassMethods
+      mod.extend Draft
     end
 
-    module ClassMethods
+    module Draft
       attr_accessor :selector, :source
       attr_reader :filters
 
