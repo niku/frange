@@ -1,7 +1,13 @@
 module Frange
   module Pipe
     def initialize source = nil
-      @source = source ?  source : self.class.source.clone
+      source ||= self.class.source.clone
+      @source = Enumerator.new { |y|
+        loop do
+          source.next until selector.call(source.peek)
+          y << filters.reduce(source.next){ |s,f| f.call(s) }
+        end
+      }
     end
 
     def source
@@ -17,9 +23,11 @@ module Frange
     end
 
     def next
-      call_once = false
-      call_once, matched = true, @source.next until selector.call(@source.peek)
-      filters.reduce(call_once ? matched : @source.next){ |s,f| f.call(s) }
+      @source.next
+    end
+
+    def peek
+      @source.peek
     end
 
     # define class method's
@@ -42,7 +50,7 @@ module Frange
       private
       def module_initialize
         @selector = ->(input){ true }
-        @source = [].to_enum
+        @source = Enumerator.new {}
         @filters = []
       end
     end
