@@ -59,5 +59,21 @@ module Frange
       it{ subject.should have(3).filters }
       it{ subject.next.should eq "a123" }
     end
+    context "given with nested source" do
+      subject {
+        Frange.valve do |pipe|
+          pipe.source Frange.valve { |inner|
+            inner.source ["a", 1, "b", 2, "c"].to_enum
+            inner.selector { |input| input.kind_of?(String) }
+            inner.filter { |input| input + "1" }
+          }
+          pipe.filter { |input| input + "2" }
+          pipe.filter { |input| input + "3" }
+        end
+      }
+      it{ should be_kind_of Frange::Valve }
+      it{ subject.should have(3).filters }
+      it{ subject.next.should eq "a123" }
+    end
   end
 end
