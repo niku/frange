@@ -2,13 +2,14 @@ require "frange/version"
 
 module Frange
   class Draft
-    attr_accessor :selector, :source
+    attr_accessor :selector, :source, :unit
     attr_reader :filters
 
     def initialize
       @selector = ->(input){ true }
       @source = Enumerator.new {}
       @filters = []
+      @unit = ->(input){ [input].each }
     end
 
     def add_filter filter
@@ -25,10 +26,12 @@ module Frange
       source   = source || @draft.source.clone
       selector = @draft.selector
       filters  = @draft.filters
+      unit     = @draft.unit
       Valve.new { |y|
         loop do
           source.next until selector.call(source.peek)
-          y << filters.reduce(source.next){ |s,f| f.call(s) }
+          filtered = filters.reduce(source.next){ |s,f| f.call(s) }
+          unit.call(filtered).each{ |u| y << u }
         end
       }
     end
@@ -51,6 +54,10 @@ module Frange
 
     def selector &block
       @draft.selector = block
+    end
+
+    def unit &block
+      @draft.unit = block
     end
 
     def to_pipe

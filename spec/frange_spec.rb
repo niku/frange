@@ -36,7 +36,7 @@ module Frange
         context "when called twice" do
           it{
             ary = []
-            2.times{ ary << subject.next }
+             2.times{ ary << subject.next }
             ary.should eq ["a12", "b12"]
           }
         end
@@ -58,6 +58,15 @@ module Frange
       it{ should be_kind_of Frange::Valve }
       it{ subject.should have(3).filters }
       it{ subject.next.should eq "a123" }
+    end
+    context "given unit"do
+      subject {
+        Frange.valve do |pipe|
+          pipe.source [[1,2,3,4]].each
+          pipe.unit { |input| input.each }
+        end
+      }
+      it { subject.next.should be 1 }
     end
     context "given with nested source" do
       subject {
