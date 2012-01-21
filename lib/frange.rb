@@ -27,7 +27,7 @@ module Frange
       selector = @draft.selector
       filters  = @draft.filters
       unit     = @draft.unit
-      Valve.new { |y|
+      Bucket.new { |y|
         loop do
           source.next until selector.call(source.peek)
           filtered = filters.reduce(source.next){ |s,f| f.call(s) }
@@ -37,7 +37,7 @@ module Frange
     end
   end
 
-  class Valve < Enumerator; end
+  class Bucket < Enumerator; end
 
   class Builder
     def initialize
@@ -71,7 +71,7 @@ module Frange
     builder.to_pipe
   end
 
-  def self.valve &block
+  def self.bucket &block
     if block_given?
       self.pipe(&block).new
     else

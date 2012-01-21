@@ -47,7 +47,7 @@ module Frange
   describe "Frange.piping" do
     context "given with source" do
       subject {
-        Frange.valve { |pipe|
+        Frange.bucket { |pipe|
           pipe.source ["a", 1, "b", 2, "c"].to_enum
           pipe.selector { |input| input.kind_of?(String) }
           pipe.filter { |input| input + "1" }
@@ -55,13 +55,13 @@ module Frange
           pipe.filter { |input| input + "3" }
         }
       }
-      it{ should be_kind_of Frange::Valve }
+      it{ should be_kind_of Frange::Bucket }
       it{ subject.should have(3).filters }
       it{ subject.next.should eq "a123" }
     end
     context "given unit"do
       subject {
-        Frange.valve do |pipe|
+        Frange.bucket do |pipe|
           pipe.source [[1,2,3,4]].each
           pipe.unit { |input| input.each }
         end
@@ -70,8 +70,8 @@ module Frange
     end
     context "given with nested source" do
       subject {
-        Frange.valve do |pipe|
-          pipe.source Frange.valve { |inner|
+        Frange.bucket do |pipe|
+          pipe.source Frange.bucket { |inner|
             inner.source ["a", 1, "b", 2, "c"].to_enum
             inner.selector { |input| input.kind_of?(String) }
             inner.filter { |input| input + "1" }
@@ -80,7 +80,7 @@ module Frange
           pipe.filter { |input| input + "3" }
         end
       }
-      it{ should be_kind_of Frange::Valve }
+      it{ should be_kind_of Frange::Bucket }
       it{ subject.should have(3).filters }
       it{ subject.next.should eq "a123" }
     end
