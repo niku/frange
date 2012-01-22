@@ -48,8 +48,8 @@ module Frange
       @draft.add_filter block
     end
 
-    def source val
-      @draft.source = val
+    def source val = nil, &block
+      @draft.source = block_given? ? (Enumerator.new &block) : val
     end
 
     def selector &block

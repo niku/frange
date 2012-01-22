@@ -36,7 +36,7 @@ module Frange
         context "when called twice" do
           it{
             ary = []
-             2.times{ ary << subject.next }
+            2.times{ ary << subject.next }
             ary.should eq ["a12", "b12"]
           }
         end
@@ -44,7 +44,7 @@ module Frange
     end
   end
 
-  describe "Frange.piping" do
+  describe ".bucket" do
     context "given with source" do
       subject {
         Frange.bucket { |pipe|
@@ -59,7 +59,7 @@ module Frange
       it{ subject.should have(3).filters }
       it{ subject.next.should eq "a123" }
     end
-    context "given unit"do
+    context "given unit" do
       subject {
         Frange.bucket do |pipe|
           pipe.source [[1,2,3,4]].each
@@ -67,6 +67,14 @@ module Frange
         end
       }
       it { subject.next.should be 1 }
+    end
+    context "given source block" do
+      subject {
+        Frange.bucket do |pipe|
+          pipe.source { |y| y << 'hello' }
+        end
+      }
+      it { subject.next.should eq 'hello' }
     end
     context "given with nested source" do
       subject {
