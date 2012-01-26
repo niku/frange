@@ -28,8 +28,8 @@ module Frange
         subject do
           draft = Draft.new
           draft.source = %w(a b).to_enum
-          draft.add_filter ->(input){ input + "1" }
-          draft.add_filter ->(input){ input + "2" }
+          draft.filter { |input| input + "1" }
+          draft.filter { |input| input + "2" }
           pipe = Pipe.new(draft)
           pipe.new
         end
@@ -44,6 +44,14 @@ module Frange
     end
   end
 
+  describe ".pipe" do
+    subject {
+      Frange.pipe do |pipe|
+        pipe.source { |y| y << params[:url] }
+      end
+    }
+    it{ subject.new(url: 'http://example.com').next.should eq 'http://example.com' }
+  end
   describe ".bucket" do
     context "given with source" do
       subject {

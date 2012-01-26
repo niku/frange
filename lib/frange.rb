@@ -2,18 +2,51 @@ require "frange/version"
 
 module Frange
   class Draft
-    attr_accessor :selector, :source, :unit
-    attr_reader :filters
+    attr_writer :source
+    attr_accessor :params
 
     def initialize
       @selector = ->(input){ true }
       @source = Enumerator.new {}
       @filters = []
       @unit = ->(input){ [input].each }
+      @params = {}
     end
 
-    def add_filter filter
-      @filters << filter
+    def filter &block
+      @filters << block
+    end
+
+    def source val = nil, &block
+      @source = block_given? ? (Enumerator.new &block) : val
+    end
+
+    def selector &block
+      @selector = block
+    end
+
+    def unit &block
+      @unit = block
+    end
+
+    def _filters
+      @filters
+    end
+
+    def _source
+      @source
+    end
+
+    def _selector
+      @selector
+    end
+
+    def _unit
+      @unit
+    end
+
+    def to_pipe
+      Pipe.new(self)
     end
   end
 
@@ -22,11 +55,12 @@ module Frange
       @draft = draft
     end
 
-    def new source = nil
-      source   = source || @draft.source.clone
-      selector = @draft.selector
-      filters  = @draft.filters
-      unit     = @draft.unit
+    def new params = {}
+      @draft.params = params
+      source = @draft._source.clone
+      selector = @draft._selector
+      filters  = @draft._filters
+      unit     = @draft._unit
       Bucket.new { |y|
         loop do
           source.next until selector.call(source.peek)
@@ -39,34 +73,8 @@ module Frange
 
   class Bucket < Enumerator; end
 
-  class Builder
-    def initialize
-      @draft = Draft.new
-    end
-
-    def filter &block
-      @draft.add_filter block
-    end
-
-    def source val = nil, &block
-      @draft.source = block_given? ? (Enumerator.new &block) : val
-    end
-
-    def selector &block
-      @draft.selector = block
-    end
-
-    def unit &block
-      @draft.unit = block
-    end
-
-    def to_pipe
-      Pipe.new(@draft)
-    end
-  end
-
   def self.pipe &block
-    builder = Builder.new
+    builder = Draft.new
     builder.instance_eval &block if block_given?
     builder.to_pipe
   end
