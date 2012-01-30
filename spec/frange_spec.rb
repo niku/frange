@@ -2,103 +2,62 @@ require_relative "spec_helper"
 
 module Frange
   describe Pipe do
-    describe "#next" do
-      context "when default" do
-        it{ expect{ subject.next }.to raise_exception } # TODO How to behave?
-      end
-      context "given source" do
-        subject do
-          draft = Draft.new
-          draft.source = %w(a b).to_enum
-          pipe = Pipe.new(draft)
-          pipe.new
-        end
-        context "when called twice" do
-          it{
-            ary = []
-            2.times{ ary << subject.next }
-            ary.should eq ["a", "b"]
-          }
-        end
-        context "when called 3 times" do
-          it{ expect{ 3.times{ subject.next } }.to raise_exception(StopIteration) }
-        end
-      end
-      context "given source and filter" do
-        subject do
-          draft = Draft.new
-          draft.source = %w(a b).to_enum
-          draft.filter { |input| input + "1" }
-          draft.filter { |input| input + "2" }
-          pipe = Pipe.new(draft)
-          pipe.new
-        end
-        context "when called twice" do
-          it{
-            ary = []
-            2.times{ ary << subject.next }
-            ary.should eq ["a12", "b12"]
-          }
-        end
-      end
-    end
-  end
-
-  describe ".pipe" do
-    subject {
-      Frange.pipe do |pipe|
-        pipe.source { |y| y << params[:url] }
-      end
-    }
-    it{ subject.new(url: 'http://example.com').next.should eq 'http://example.com' }
-  end
-  describe ".bucket" do
-    context "given with source" do
+    describe ".pipe" do
       subject {
-        Frange.bucket { |pipe|
-          pipe.source ["a", 1, "b", 2, "c"].to_enum
-          pipe.selector { |input| input.kind_of?(String) }
-          pipe.filter { |input| input + "1" }
-          pipe.filter { |input| input + "2" }
-          pipe.filter { |input| input + "3" }
+        Frange.pipe do |pipe|
+          pipe.source { |y| y << params[:url] }
+        end
+      }
+      it{ subject.new(url: 'http://example.com').next.should eq 'http://example.com' }
+    end
+    describe ".bucket" do
+      context "given with source" do
+        subject {
+          Frange.bucket { |pipe|
+            pipe.source ["a", 1, "b", 2, "c"].to_enum
+            pipe.selector { |input| input.kind_of?(String) }
+            pipe.filter { |input| input + "1" }
+            pipe.filter { |input| input + "2" }
+            pipe.filter { |input| input + "3" }
+          }
         }
-      }
-      it{ should be_kind_of Frange::Bucket }
-      it{ subject.should have(3).filters }
-      it{ subject.next.should eq "a123" }
-    end
-    context "given unit" do
-      subject {
-        Frange.bucket do |pipe|
-          pipe.source [[1,2,3,4]].each
-          pipe.unit { |input| input.each }
-        end
-      }
-      it { subject.next.should be 1 }
-    end
-    context "given source block" do
-      subject {
-        Frange.bucket do |pipe|
-          pipe.source { |y| y << 'hello' }
-        end
-      }
-      it { subject.next.should eq 'hello' }
-    end
-    context "given with nested source" do
-      subject {
-        Frange.bucket do |pipe|
-          pipe.source Frange.bucket { |inner|
-            inner.source ["a", 1, "b", 2, "c"].to_enum
-            inner.selector { |input| input.kind_of?(String) }
-            inner.filter { |input| input + "1" }
-          }
-          pipe.filter { |input| input + "2" }
-          pipe.filter { |input| input + "3" }
-        end
-      }
-      it{ should be_kind_of Frange::Bucket }
-      it{ subject.should have(3).filters }
-      it{ subject.next.should eq "a123" }
+        it{ should be_kind_of Frange::Bucket }
+        it{ subject.should have(3).filters }
+        it{ subject.next.should eq "a123" }
+      end
+      context "given unit" do
+        subject {
+          Frange.bucket do |pipe|
+            pipe.source [[1,2,3,4]].each
+            pipe.unit { |input| input.each }
+          end
+        }
+        it { subject.next.should be 1 }
+      end
+      context "given source block" do
+        subject {
+          Frange.bucket do |pipe|
+            pipe.source { |y| y << 'hello' }
+          end
+        }
+        it { subject.next.should eq 'hello' }
+      end
+      context "given with nested source" do
+        subject {
+          Frange.bucket do |pipe|
+            pipe.source Frange.bucket { |inner|
+              inner.source ["a", 1, "b", 2, "c"].to_enum
+              inner.selector { |input| input.kind_of?(String) }
+              inner.filter { |input| input + "1" }
+            }
+            pipe.filter { |input| input + "2" }
+            pipe.filter { |input| input + "3" }
+          end
+        }
+        it{ should be_kind_of Frange::Bucket }
+        it{ subject.should have(3).filters }
+        it{ subject.next.should eq "a123" }
+      end
     end
   end
 end
