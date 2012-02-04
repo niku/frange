@@ -1,63 +1,88 @@
 require_relative "spec_helper"
 
 module Frange
-  describe Pipe do
-    describe ".pipe" do
-      subject {
-        Frange.pipe do |pipe|
-          pipe.source { |y| y << params[:url] }
+  describe ".draft" do
+    let(:source_array){ ["a", 1, "b", 2, "c"] }
+
+    context "given parameter" do
+      let(:put_parameter){ { a: "foo" } }
+      subject do
+        Frange.draft { |d|
+          d.source { |y| y << params[:a] }
+        }.build(put_parameter)
+      end
+      it { subject.next.should eq put_parameter[:a] }
+    end
+
+    context "when source setuped" do
+      context "by Enumrator" do
+        subject do
+          a = source_array # can't find source_array in draft block
+          Frange.draft { |d|
+            d.source a.to_enum
+          }.build
         end
-      }
-      it{ subject.new(url: 'http://example.com').next.should eq 'http://example.com' }
-    end
-    describe ".bucket" do
-      context "given with source" do
-        subject {
-          Frange.bucket { |pipe|
-            pipe.source ["a", 1, "b", 2, "c"].to_enum
-            pipe.selector { |input| input.kind_of?(String) }
-            pipe.filter { |input| input + "1" }
-            pipe.filter { |input| input + "2" }
-            pipe.filter { |input| input + "3" }
-          }
+        it {
+          5.times.with_object([]){ |_,o|
+            o << subject.next
+          }.should eq source_array
         }
-        it{ should be_kind_of Frange::Bucket }
-        it{ subject.should have(3).filters }
-        it{ subject.next.should eq "a123" }
       end
-      context "given unit" do
-        subject {
-          Frange.bucket do |pipe|
-            pipe.source [[1,2,3,4]].each
-            pipe.unit { |input| input.each }
-          end
-        }
-        it { subject.next.should be 1 }
-      end
-      context "given source block" do
-        subject {
-          Frange.bucket do |pipe|
-            pipe.source { |y| y << 'hello' }
-          end
-        }
-        it { subject.next.should eq 'hello' }
-      end
-      context "given with nested source" do
-        subject {
-          Frange.bucket do |pipe|
-            pipe.source Frange.bucket { |inner|
-              inner.source ["a", 1, "b", 2, "c"].to_enum
-              inner.selector { |input| input.kind_of?(String) }
-              inner.filter { |input| input + "1" }
+      context "by block" do
+        subject do
+          Frange.draft { |d|
+            d.source { |y|
+              y << :a
+              y << :b
             }
-            pipe.filter { |input| input + "2" }
-            pipe.filter { |input| input + "3" }
-          end
+          }.build
+        end
+        it { subject.next.should eq :a  }
+        it {
+          subject.next
+          subject.next.should eq :b
         }
-        it{ should be_kind_of Frange::Bucket }
-        it{ subject.should have(3).filters }
-        it{ subject.next.should eq "a123" }
       end
     end
+
+    context "when selector setuped" do
+      subject do
+        a = source_array
+        Frange.draft { |d|
+          d.source a.to_enum
+          d.selector { |i| i.kind_of?(Numeric) }
+        }.build
+      end
+      it { subject.next.should eq 1 }
+      it {
+        subject.next
+        subject.next.should eq 2
+      }
+    end
+
+    context "when filter setuped" do
+      subject do
+        a = source_array
+        Frange.draft { |d|
+          d.source a.to_enum
+          d.filter { |i| '_' + i.to_s + '_' }
+          d.filter { |i| '{' + i.to_s + '}' }
+        }.build
+      end
+      it { subject.next.should eq "{_a_}"}
+    end
+  end
+
+  # advanced
+  describe "nested" do
+    subject do
+      Frange.draft { |d|
+        d.source Frange.draft { |inner| # you must not use "do end" block!
+          inner.source { |y| y << params[:inner] }
+        }.build(params)
+        d.filter { |input| params[:outer] + input + params[:outer] }
+      }.build(outer: "o", inner: "i")
+    end
+    it { subject.next.should eq "oio"}
   end
 end

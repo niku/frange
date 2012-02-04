@@ -1,86 +1,49 @@
 require "frange/version"
 
 module Frange
+  def self.draft &block
+    draft = Draft.new
+    draft.config = block
+    draft
+  end
+
   class Draft
-    attr_accessor :selector, :source, :unit, :params
-    attr_reader :filters
+    attr_accessor :config
 
-    def initialize
-      @selector = ->(input){ true }
-      @source = Enumerator.new {}
-      @filters = []
-      @unit = ->(input){ [input].each }
-    end
-
-    def add_filter filter
-      @filters << filter
+    def build params = {}
+      pipe = Pipe.new
+      pipe.params = params
+      pipe.instance_eval &config
+      pipe
     end
   end
 
-  class Pipe
-    def initialize draft
-      @draft = draft
-    end
+  class Pipe < Enumerator
+    attr_accessor :params
 
-    def new params = {}
-      @draft.params = params
-      source   = @draft.source.clone
-      selector = @draft.selector
-      filters  = @draft.filters
-      unit     = @draft.unit
-      Bucket.new { |y|
+    def initialize
+      @source = Enumerator.new {}
+      @selector = ->(input){ true }
+      @filters = []
+      super() { |y|
         loop do
-          source.next until selector.call(source.peek)
-          filtered = filters.reduce(source.next){ |s,f| f.call(s) }
-          unit.call(filtered).each{ |u| y << u }
+          @source.next until @selector.call(@source.peek)
+          y << @filters.reduce(@source.next){ |s,f| f.call(s) }
         end
       }
     end
-  end
 
-  class Bucket < Enumerator; end
-
-  class Builder
-    def initialize
-      @draft = Draft.new
-    end
-
+    protected
     def filter &block
-      @draft.add_filter block
+      @filters << block
     end
 
     def source val = nil, &block
-      @draft.source = block_given? ? (Enumerator.new &block) : val
+      @source = block_given? ? (Enumerator.new &block) : val
     end
 
     def selector &block
-      @draft.selector = block
-    end
-
-    def unit &block
-      @draft.unit = block
-    end
-
-    def params
-      @draft.params
-    end
-
-    def to_pipe
-      Pipe.new(@draft)
-    end
-  end
-
-  def self.pipe &block
-    builder = Builder.new
-    builder.instance_eval &block if block_given?
-    builder.to_pipe
-  end
-
-  def self.bucket &block
-    if block_given?
-      self.pipe(&block).new
-    else
-      self.pipe.new
+      @selector = block
     end
   end
 end
