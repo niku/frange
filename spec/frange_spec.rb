@@ -17,9 +17,9 @@ module Frange
     context "when source setuped" do
       context "by Enumrator" do
         subject do
-          a = source_array # can't find source_array in draft block
+          array = source_array # can't find source_array in draft block
           Frange.draft { |d|
-            d.source a.to_enum
+            d.source array
           }.build
         end
         it {
@@ -47,9 +47,9 @@ module Frange
 
     context "when selector setuped" do
       subject do
-        a = source_array
+        array = source_array
         Frange.draft { |d|
-          d.source a.to_enum
+          d.source array
           d.selector { |i| i.kind_of?(Numeric) }
         }.build
       end
@@ -62,9 +62,9 @@ module Frange
 
     context "when filter setuped" do
       subject do
-        a = source_array
+        array = source_array
         Frange.draft { |d|
-          d.source a.to_enum
+          d.source array
           d.filter { |i| '_' + i.to_s + '_' }
           d.filter { |i| '{' + i.to_s + '}' }
         }.build

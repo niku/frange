@@ -22,7 +22,7 @@ module Frange
     attr_accessor :params
 
     def initialize
-      @source = Enumerator.new {}
+      @source = Enumerator.new([])
       @selector = ->(input){ true }
       @filters = []
       super() { |y|
@@ -38,8 +38,12 @@ module Frange
       @filters << block
     end
 
-    def source val = nil, &block
-      @source = block_given? ? (Enumerator.new &block) : val
+    def source obj=[], method = :each, *args, &block
+      @source = case
+                when block_given?; Enumerator.new &block
+                when *args.empty?; Enumerator.new obj, method
+                else Enumerator.new obj, method, *args
+                end
     end
 
     def selector &block
