@@ -1,7 +1,7 @@
 require "spec_helper"
 
 module Frange
-  module Plugins
+  module Sources
     describe ParsedRSSEntries do
       let(:rss) { <<__EOS__ }
 <?xml version="1.0" encoding="utf-8"?>

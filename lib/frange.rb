@@ -1,7 +1,7 @@
 require "frange/version"
 
 module Frange
-  autoload :Plugins, "frange/plugins"
+  autoload :Sources, "frange/sources"
 
   def self.draft &block
     draft = Core::Draft.new
