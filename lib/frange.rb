@@ -2,6 +2,7 @@ require "frange/version"
 
 module Frange
   autoload :Sources, "frange/sources"
+  autoload :Filters, "frange/filters"
 
   def self.draft &block
     draft = Core::Draft.new
@@ -29,9 +30,13 @@ module Frange
         @selector = ->(input){ true }
         @filters = []
         super() { |y|
+          params = self.params
           loop do
             @source.next until @selector.call(@source.peek)
-            y << @filters.reduce(@source.next){ |s,f| f.call(s) }
+            y << @filters.reduce(@source.next) { |s,f|
+              s.class_eval { define_method(:params) { params } }
+              s.instance_eval &f
+            }
           end
         }
       end

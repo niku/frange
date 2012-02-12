@@ -12,3 +12,6 @@ if RUBY_PLATFORM =~ /darwin/i
   gem 'rb-fsevent', :require => false
   gem 'growl', :require => false
 end
+
+# for plugins
+gem "twitter"
