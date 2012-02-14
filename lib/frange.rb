@@ -34,7 +34,7 @@ module Frange
           loop do
             @source.next until @selector.call(@source.peek)
             y << @filters.reduce(@source.next) { |s,f|
-              s.class_eval { define_method(:params) { params } }
+              s.singleton_class.class_eval { define_method(:params) { params } }
               s.instance_eval &f
             }
           end
