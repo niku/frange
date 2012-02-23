@@ -2,7 +2,7 @@ require "twitter"
 
 module Frange
   module Filters
-    ToTwitter = ->(input) {
+    ToTwitter = ->(params, input) {
       Twitter.configure do |config|
         config.consumer_key = params[:twitter_consumer_key]
         config.consumer_secret = params[:twitter_consumer_secret]

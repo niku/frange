@@ -30,13 +30,10 @@ module Frange
         @selector = ->(input){ true }
         @filters = []
         super() { |y|
-          params = self.params
+          filters = @filters.map { |f| f.arity == 1 ? f : f.curry.call(params) }
           loop do
             @source.next until @selector.call(@source.peek)
-            y << @filters.reduce(@source.next) { |s,f|
-              s.singleton_class.class_eval { define_method(:params) { params } }
-              s.instance_eval &f
-            }
+            y << filters.reduce(@source.next) { |s,f| f.call(s) }
           end
         }
       end
