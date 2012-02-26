@@ -22,11 +22,7 @@ module Frange
             d.source array
           }.build
         end
-        it {
-          5.times.with_object([]){ |_,o|
-            o << subject.next
-          }.should eq source_array
-        }
+        it { subject.take(5).should eq source_array }
       end
       context "by block" do
         subject do
