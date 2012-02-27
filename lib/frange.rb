@@ -2,6 +2,7 @@ require "frange/version"
 
 module Frange
   autoload :Sources, "frange/sources"
+  autoload :Selectors, "frange/selectors"
   autoload :Filters, "frange/filters"
 
   def self.draft &block
@@ -30,9 +31,10 @@ module Frange
         @selector = ->(input){ true }
         @filters = []
         super() { |y|
+          selector = @selector.arity == 1 ? @selector : @selector.curry.call(params)
           filters = @filters.map { |f| f.arity == 1 ? f : f.curry.call(params) }
           loop do
-            @source.next until @selector.call(@source.peek)
+            @source.next until selector.call(@source.peek)
             y << filters.reduce(@source.next) { |s,f| f.call(s) }
           end
         }
