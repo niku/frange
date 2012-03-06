@@ -8,7 +8,7 @@ module Frange
       let(:put_parameter){ { a: "foo" } }
       subject do
         Frange.draft { |d|
-          d.source { |y| y << params[:a] }
+          d.source { |params, y| y << params[:a] }
         }.build(put_parameter)
       end
       it { subject.next.should eq put_parameter[:a] }
@@ -74,11 +74,11 @@ module Frange
     subject do
       Frange.draft { |d|
         d.source Frange.draft { |inner| # you must not use "do end" block!
-          inner.source { |y| y << params[:inner] }
+          inner.source { |inner_p, y| y << inner_p[:inner] }
         }.build(params)
-        d.filter { |input| params[:outer] + input + params[:outer] }
+        d.filter { |params, input| params[:outer] + input + params[:outer] }
       }.build(outer: "o", inner: "i")
     end
-    it { subject.next.should eq "oio"}
+    it { subject.next.should eq "oio" }
   end
 end

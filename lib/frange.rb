@@ -27,15 +27,25 @@ module Frange
       attr_accessor :params
 
       def initialize
-        @source = Enumerator.new([])
+        @source = {}
         @selector = ->(input){ true }
         @filters = []
         super() { |y|
+          source = case
+                   when block = @source[:block]
+                     if block.arity == 1
+                       Enumerator.new &block
+                     else
+                       Enumerator.new &block.curry.call(params)
+                     end
+                   when @source.include?(:args); Enumerator.new @source[:obj], @source[:method], @source[:args]
+                   else Enumerator.new @source[:obj], @source[:method]
+                   end
           selector = @selector.arity == 1 ? @selector : @selector.curry.call(params)
           filters = @filters.map { |f| f.arity == 1 ? f : f.curry.call(params) }
           loop do
-            @source.next until selector.call(@source.peek)
-            y << filters.reduce(@source.next) { |s,f| f.call(s) }
+            source.next until selector.call(source.peek)
+            y << filters.reduce(source.next) { |s,f| f.call(s) }
           end
         }
       end
@@ -47,9 +57,9 @@ module Frange
 
       def source obj=[], method = :each, *args, &block
         @source = case
-                  when block_given?; Enumerator.new &block
-                  when *args.empty?; Enumerator.new obj, method
-                  else Enumerator.new obj, method, *args
+                  when block_given?; { block: block }
+                  when *args.empty?; { obj: obj, method: method }
+                  else { obj: obj, method: method, args: args }
                   end
       end
 
